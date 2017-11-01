@@ -179,11 +179,11 @@ namespace RB10.Bot.Toysrus
                 ExecutingStateChanged.Invoke(this, e);
         }
 
-        protected void ReportStatus(string jsnCode, string message, ReportState reportState)
+        protected void ReportStatus(string janCode, string message, ReportState reportState)
         {
             var eventArgs = new ExecutingStateEventArgs()
             {
-                JanCode = jsnCode,
+                JanCode = janCode,
                 Message = message,
                 ReportState = reportState
             };

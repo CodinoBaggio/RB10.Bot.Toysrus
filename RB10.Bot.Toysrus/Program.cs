@@ -14,11 +14,19 @@ namespace RB10.Bot.Toysrus
         /// アプリケーションのメイン エントリ ポイントです。
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new ExecForm());
+            if(args.Length == 0)
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new ExecForm());
+            }
+            else
+            {
+                var task = new ToysrusBot();
+                task.Start(Properties.Settings.Default.JanCodeFileName, Properties.Settings.Default.ResultFileName);
+            }
         }
     }
 }

@@ -143,7 +143,7 @@
             this.MaximizeBox = false;
             this.Name = "ExecForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "トイザらススクレイピング";
+            this.Text = "トイザらス スクレイピング";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
