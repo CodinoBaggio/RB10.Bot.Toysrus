@@ -56,7 +56,7 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 22);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(138, 18);
+            this.label1.Size = new System.Drawing.Size(173, 23);
             this.label1.TabIndex = 1;
             this.label1.Text = "JANコードCSVファイル";
             // 
@@ -65,7 +65,7 @@
             this.JanCodeFileTextBox.Location = new System.Drawing.Point(156, 19);
             this.JanCodeFileTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.JanCodeFileTextBox.Name = "JanCodeFileTextBox";
-            this.JanCodeFileTextBox.Size = new System.Drawing.Size(749, 25);
+            this.JanCodeFileTextBox.Size = new System.Drawing.Size(749, 30);
             this.JanCodeFileTextBox.TabIndex = 2;
             // 
             // FileSelectButton
@@ -130,7 +130,7 @@
             // 
             // ExecForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 18F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 23F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(952, 424);
             this.Controls.Add(this.dataGridView1);

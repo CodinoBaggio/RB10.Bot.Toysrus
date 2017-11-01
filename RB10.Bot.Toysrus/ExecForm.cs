@@ -36,8 +36,11 @@ namespace RB10.Bot.Toysrus
 
                 SaveFileDialog dlg = new SaveFileDialog();
                 dlg.Title = "結果ファイルの出力先を指定して下さい。";
+                dlg.Filter = "csvファイル (*.csv)|*.csv|すべてのファイル (*.*)|*.*";
                 dlg.FileName = $"{System.IO.Path.GetFileNameWithoutExtension(JanCodeFileTextBox.Text)}_result{DateTime.Now.ToString("yyyyMMddHHmmss")}.csv";
                 if (dlg.ShowDialog() == DialogResult.Cancel) return;
+
+                dataGridView1.Rows.Clear();
 
                 var task = new ToysrusBot();
                 task.ExecutingStateChanged += Task_ExecutingStateChanged;

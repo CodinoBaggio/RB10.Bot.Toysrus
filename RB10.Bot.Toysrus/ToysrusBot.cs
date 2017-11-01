@@ -16,7 +16,7 @@ namespace RB10.Bot.Toysrus
         private class SearchResult
         {
             public string JanCode { get; set; }
-            public string ProductName { get; set; } = "商品登録なし";
+            public string ProductName { get; set; } = "商品なし";
             public string OnlineStock { get; set; } = "-";
             public int StoreStockCount { get; set; } = -1;
             public int StoreLessStockCount { get; set; } = -1;
@@ -93,7 +93,7 @@ namespace RB10.Bot.Toysrus
                         var productName = doc.GetElementById("DISP_GOODS_NM");
                         if (productName == null)
                         {
-                            ReportStatus(janCode, "商品登録がありません。", ReportState.Warning);
+                            ReportStatus(janCode, "商品がありません。", ReportState.Warning);
                             continue;
                         }
                         else
@@ -102,7 +102,7 @@ namespace RB10.Bot.Toysrus
                         }
 
                         var stock = doc.GetElementById("isStock");
-                        if (stock == null)
+                        if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
                         {
                             ReportStatus(janCode, "在庫状況が確認できません。", ReportState.Warning);
                             result.OnlineStock = "不明";
