@@ -17,6 +17,7 @@ namespace RB10.Bot.Toysrus
         {
             public string JanCode { get; set; }
             public string ProductName { get; set; } = "商品なし";
+            public string Price { get; set; } = "";
             public string OnlineStock { get; set; } = "-";
             public int StoreStockCount { get; set; } = -1;
             public int StoreLessStockCount { get; set; } = -1;
@@ -69,7 +70,6 @@ namespace RB10.Bot.Toysrus
                 foreach (var janCode in janCodes)
                 {
                     var result = new SearchResult();
-                    results.Add(result);
                     result.JanCode = janCode;
 
                     try
@@ -99,6 +99,18 @@ namespace RB10.Bot.Toysrus
                         else
                         {
                             result.ProductName = productName.InnerHtml;
+                        }
+                        results.Add(result);
+
+                        var price = doc.GetElementsByClassName("inTax");
+                        if (price.Count() == 0 || (price.First()  as AngleSharp.Dom.Html.IHtmlElement).IsHidden)
+                        {
+                            ReportStatus(janCode, "税込価格がありません。", ReportState.Warning);
+                            continue;
+                        }
+                        else
+                        {
+                            result.Price = price.First().InnerHtml.Substring(0, price.First().InnerHtml.IndexOf("円")).Replace(",", "");
                         }
 
                         var stock = doc.GetElementById("isStock");
@@ -156,10 +168,10 @@ namespace RB10.Bot.Toysrus
 
                 // ファイル出力
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine("JANコード,商品名,オンライン在庫,店舗在庫あり,店舗在庫わずか");
+                sb.AppendLine("JANコード,商品名,税込価格,オンライン在庫,店舗在庫あり,店舗在庫わずか");
                 foreach (var result in results)
                 {
-                    sb.AppendLine($"{result.JanCode},{result.ProductName},{result.OnlineStock},{result.StoreStockCount},{result.StoreLessStockCount}");
+                    sb.AppendLine($"{result.JanCode},{result.ProductName},{result.Price},{result.OnlineStock},{result.StoreStockCount},{result.StoreLessStockCount}");
                 }
                 if (0 < results.Count) System.IO.File.WriteAllText(saveFileName, sb.ToString(), Encoding.GetEncoding("shift-jis"));
             }
