@@ -21,6 +21,7 @@ namespace RB10.Bot.Toysrus
             public string OnlineStock { get; set; } = "-";
             public int StoreStockCount { get; set; } = -1;
             public int StoreLessStockCount { get; set; } = -1;
+            public string ImageUrl { get; set; } = "";
         }
 
         private System.Text.RegularExpressions.Regex _exist = new System.Text.RegularExpressions.Regex("<div class=\"status\">在庫あり</div>");
@@ -113,6 +114,17 @@ namespace RB10.Bot.Toysrus
                             result.Price = price.First().InnerHtml.Substring(0, price.First().InnerHtml.IndexOf("円")).Replace(",", "");
                         }
 
+                        var image = doc.GetElementById("slideshow-01");
+                        if (image == null || (image as AngleSharp.Dom.Html.IHtmlAnchorElement).IsHidden)
+                        {
+                            ReportStatus(janCode, "商品画像URLが取得できません。", ReportState.Warning);
+                            result.ImageUrl = "不明";
+                        }
+                        else
+                        {
+                            result.ImageUrl = "https://www.toysrus.co.jp" + (image as AngleSharp.Dom.Html.IHtmlAnchorElement).PathName;
+                        }
+
                         var stock = doc.GetElementById("isStock");
                         if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
                         {
@@ -168,10 +180,10 @@ namespace RB10.Bot.Toysrus
 
                 // ファイル出力
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine("JANコード,商品名,税込価格,オンライン在庫,店舗在庫あり,店舗在庫わずか");
+                sb.AppendLine("JANコード,商品名,税込価格,オンライン在庫,店舗在庫あり,店舗在庫わずか,商品画像URL");
                 foreach (var result in results)
                 {
-                    sb.AppendLine($"{result.JanCode},{result.ProductName},{result.Price},{result.OnlineStock},{result.StoreStockCount},{result.StoreLessStockCount}");
+                    sb.AppendLine($"{result.JanCode},{result.ProductName},{result.Price},{result.OnlineStock},{result.StoreStockCount},{result.StoreLessStockCount},{result.ImageUrl}");
                 }
                 if (0 < results.Count) System.IO.File.WriteAllText(saveFileName, sb.ToString(), Encoding.GetEncoding("shift-jis"));
             }
