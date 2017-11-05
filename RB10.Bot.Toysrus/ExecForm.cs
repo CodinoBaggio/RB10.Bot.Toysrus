@@ -88,6 +88,11 @@ namespace RB10.Bot.Toysrus
                     DataGridViewCellStyle cellStyle = new DataGridViewCellStyle() { BackColor = System.Drawing.Color.Red, ForeColor = System.Drawing.Color.White };
                     dataGridView1.Rows[e.RowIndex].DefaultCellStyle = cellStyle;
                 }
+                else if (e.Value.ToString() == "Exception")
+                {
+                    DataGridViewCellStyle cellStyle = new DataGridViewCellStyle() { BackColor = System.Drawing.Color.Black, ForeColor = System.Drawing.Color.White };
+                    dataGridView1.Rows[e.RowIndex].DefaultCellStyle = cellStyle;
+                }
             }
         }
 
@@ -116,7 +121,8 @@ namespace RB10.Bot.Toysrus
 
                 var task = new ToysrusBot();
                 task.ExecutingStateChanged += Task_ExecutingStateChanged;
-                await task.StartAsync(JanCodeFileTextBox.Text, dlg.FileName);
+                await task.StartAsync2(JanCodeFileTextBox.Text, dlg.FileName);
+                //await task.StartAsync(JanCodeFileTextBox.Text, dlg.FileName);
             }
             catch (ApplicationException ex)
             {
