@@ -37,6 +37,7 @@
             this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.RunAsyncButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -56,7 +57,7 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 22);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(173, 23);
+            this.label1.Size = new System.Drawing.Size(138, 18);
             this.label1.TabIndex = 1;
             this.label1.Text = "JANコードCSVファイル";
             // 
@@ -65,7 +66,7 @@
             this.JanCodeFileTextBox.Location = new System.Drawing.Point(156, 19);
             this.JanCodeFileTextBox.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.JanCodeFileTextBox.Name = "JanCodeFileTextBox";
-            this.JanCodeFileTextBox.Size = new System.Drawing.Size(749, 30);
+            this.JanCodeFileTextBox.Size = new System.Drawing.Size(749, 25);
             this.JanCodeFileTextBox.TabIndex = 2;
             // 
             // FileSelectButton
@@ -128,11 +129,23 @@
             this.Column3.ReadOnly = true;
             this.Column3.Width = 480;
             // 
+            // RunAsyncButton
+            // 
+            this.RunAsyncButton.Location = new System.Drawing.Point(684, 52);
+            this.RunAsyncButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.RunAsyncButton.Name = "RunAsyncButton";
+            this.RunAsyncButton.Size = new System.Drawing.Size(125, 34);
+            this.RunAsyncButton.TabIndex = 17;
+            this.RunAsyncButton.Text = "非同期実行";
+            this.RunAsyncButton.UseVisualStyleBackColor = true;
+            this.RunAsyncButton.Click += new System.EventHandler(this.RunAsyncButton_Click);
+            // 
             // ExecForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 23F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(952, 424);
+            this.Controls.Add(this.RunAsyncButton);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.FileSelectButton);
             this.Controls.Add(this.JanCodeFileTextBox);
@@ -161,6 +174,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column3;
+        private System.Windows.Forms.Button RunAsyncButton;
     }
 }
 

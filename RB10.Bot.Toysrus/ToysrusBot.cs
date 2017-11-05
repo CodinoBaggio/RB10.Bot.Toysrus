@@ -77,6 +77,8 @@ namespace RB10.Bot.Toysrus
                     {
                         var url = $"https://www.toysrus.co.jp/search/?q={janCode}";
                         var req = (HttpWebRequest)WebRequest.Create(url);
+                        req.Timeout = 5000;
+                        req.Proxy = null;
 
                         // html取得文字列
                         string html;
@@ -104,7 +106,7 @@ namespace RB10.Bot.Toysrus
                         results.Add(result);
 
                         var price = doc.GetElementsByClassName("inTax");
-                        if (price.Count() == 0 || (price.First()  as AngleSharp.Dom.Html.IHtmlElement).IsHidden)
+                        if (price.Count() == 0 || (price.First() as AngleSharp.Dom.Html.IHtmlElement).IsHidden)
                         {
                             ReportStatus(janCode, "税込価格がありません。", ReportState.Warning);
                             continue;
@@ -155,6 +157,8 @@ namespace RB10.Bot.Toysrus
                         var storeUrl = $"https://www.toysrus.co.jp/disp/CSfGoodsPageRealShop_001.jsp?sku={(sku[0] as AngleSharp.Dom.Html.IHtmlInputElement).Value}&shopCd=";
 
                         req = (HttpWebRequest)WebRequest.Create(storeUrl);
+                        req.Timeout = 5000;
+                        req.Proxy = null;
                         using (var res = (HttpWebResponse)req.GetResponse())
                         using (var resSt = res.GetResponseStream())
                         using (var sr = new StreamReader(resSt, Encoding.UTF8))
@@ -195,6 +199,170 @@ namespace RB10.Bot.Toysrus
             {
                 ReportStatus("-", "すべての処理が完了しました。", ReportState.Information);
             }
+        }
+
+        public async Task StartAsync(string janCodeFileName, string saveFileName)
+        {
+            // ファイル読み込み
+            List<string> janFile = System.IO.File.ReadLines(janCodeFileName, Encoding.GetEncoding("shift-jis")).ToList();
+
+            // JANコードを1000ずつに分割
+            int start = 0;
+            List<List<string>> janCodesList = new List<List<string>>();
+            while (true)
+            {
+                List<string> janCodes = janFile.Skip(start).Take(100).ToList();
+                janCodesList.Add(janCodes);
+                start += 100;
+                if (janFile.Count < start)
+                {
+                    break;
+                }
+            }
+
+            // スクレイピング非同期処理実行
+            var tasks = janCodesList.Select(x => Task.Run(() => 
+            {
+                return Scrape(x);
+            }));
+            var results = await Task.WhenAll(tasks);
+
+            // 結果取得
+            List<SearchResult> outputs = new List<SearchResult>();
+            foreach (var result in results)
+            {
+                outputs.AddRange(result);
+            }
+
+            // ファイル出力
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("JANコード,商品名,税込価格,オンライン在庫,店舗在庫あり,店舗在庫わずか,商品画像URL");
+            foreach (var result in outputs)
+            {
+                sb.AppendLine($"{result.JanCode},{result.ProductName},{result.Price},{result.OnlineStock},{result.StoreStockCount},{result.StoreLessStockCount},{result.ImageUrl}");
+            }
+            if (0 < outputs.Count) System.IO.File.WriteAllText(saveFileName, sb.ToString(), Encoding.GetEncoding("shift-jis"));
+        }
+        
+        private List<SearchResult> Scrape(List<string> janCodes)
+        {
+            // 情報取得
+            List<SearchResult> results = new List<SearchResult>();
+            foreach (var janCode in janCodes)
+            {
+                var result = new SearchResult();
+                result.JanCode = janCode;
+
+                try
+                {
+                    var url = $"https://www.toysrus.co.jp/search/?q={janCode}";
+                    var req = (HttpWebRequest)WebRequest.Create(url);
+                    req.Timeout = 5000;
+                    req.Proxy = null;
+
+                    // html取得文字列
+                    string html;
+
+                    using (var res = (HttpWebResponse)req.GetResponse())
+                    using (var resSt = res.GetResponseStream())
+                    using (var sr = new StreamReader(resSt, Encoding.UTF8))
+                    {
+                        html = sr.ReadToEnd();
+                    }
+
+                    var parser = new HtmlParser();
+                    var doc = parser.Parse(html);
+
+                    var productName = doc.GetElementById("DISP_GOODS_NM");
+                    if (productName == null)
+                    {
+                        ReportStatus(janCode, "商品がありません。", ReportState.Warning);
+                        continue;
+                    }
+                    else
+                    {
+                        result.ProductName = productName.InnerHtml;
+                    }
+                    results.Add(result);
+
+                    var price = doc.GetElementsByClassName("inTax");
+                    if (price.Count() == 0 || (price.First() as AngleSharp.Dom.Html.IHtmlElement).IsHidden)
+                    {
+                        ReportStatus(janCode, "税込価格がありません。", ReportState.Warning);
+                        continue;
+                    }
+                    else
+                    {
+                        result.Price = price.First().InnerHtml.Substring(0, price.First().InnerHtml.IndexOf("円")).Replace(",", "");
+                    }
+
+                    var image = doc.GetElementById("slideshow-01");
+                    if (image == null || (image as AngleSharp.Dom.Html.IHtmlAnchorElement).IsHidden)
+                    {
+                        ReportStatus(janCode, "商品画像URLが取得できません。", ReportState.Warning);
+                        result.ImageUrl = "不明";
+                    }
+                    else
+                    {
+                        result.ImageUrl = "https://www.toysrus.co.jp" + (image as AngleSharp.Dom.Html.IHtmlAnchorElement).PathName;
+                    }
+
+                    var stock = doc.GetElementById("isStock");
+                    if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
+                    {
+                        ReportStatus(janCode, "在庫状況が確認できません。", ReportState.Warning);
+                        result.OnlineStock = "不明";
+                    }
+                    else
+                    {
+                        var stockStatus = stock.Children[0].Children.Where(x => (x as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden == false);
+                        if (stockStatus.Count() == 0)
+                        {
+                            ReportStatus(janCode, "在庫状況が確認できません。", ReportState.Warning);
+                            result.OnlineStock = "不明";
+                        }
+                        else
+                        {
+                            var f = stockStatus.First().InnerHtml;
+                            result.OnlineStock = f;
+                        }
+                    }
+
+                    var sku = doc.GetElementsByName("MAIN_SKU");
+                    if (sku == null)
+                    {
+                        ReportStatus(janCode, "トイザらスの商品コードが取得できなかったため、店舗在庫の取得ができません。", ReportState.Warning);
+                        continue;
+                    }
+                    var storeUrl = $"https://www.toysrus.co.jp/disp/CSfGoodsPageRealShop_001.jsp?sku={(sku[0] as AngleSharp.Dom.Html.IHtmlInputElement).Value}&shopCd=";
+
+                    req = (HttpWebRequest)WebRequest.Create(storeUrl);
+                    req.Timeout = 5000;
+                    req.Proxy = null;
+                    using (var res = (HttpWebResponse)req.GetResponse())
+                    using (var resSt = res.GetResponseStream())
+                    using (var sr = new StreamReader(resSt, Encoding.UTF8))
+                    {
+                        html = sr.ReadToEnd();
+                    }
+                    doc = parser.Parse(html);
+
+                    var source = doc.Source.Text;
+
+                    int existCount = _exist.Matches(source).Count;
+                    int lessExistCount = _lessExist.Matches(source).Count;
+                    result.StoreStockCount = existCount;
+                    result.StoreLessStockCount = lessExistCount;
+
+                    ReportStatus(janCode, "情報を取得しました。", ReportState.Information);
+                }
+                catch (Exception ex)
+                {
+                    ReportStatus(janCode, ex.ToString(), ReportState.Exception);
+                }
+            }
+
+            return results;
         }
 
         protected virtual void OnExecutingStateChanged(ExecutingStateEventArgs e)
