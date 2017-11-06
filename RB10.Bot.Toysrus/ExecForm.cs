@@ -29,6 +29,21 @@ namespace RB10.Bot.Toysrus
             InitializeComponent();
         }
 
+        private void ExecForm_Load(object sender, EventArgs e)
+        {
+            // DataGirdViewのTypeを取得
+            System.Type dgvtype = typeof(DataGridView);
+
+            // プロパティ設定の取得
+            System.Reflection.PropertyInfo dgvPropertyInfo =
+            dgvtype.GetProperty(
+            "DoubleBuffered", System.Reflection.BindingFlags.Instance |
+            System.Reflection.BindingFlags.NonPublic);
+
+            // 対象のDataGridViewにtrueをセットする
+            dgvPropertyInfo.SetValue(dataGridView1, true, null);
+        }
+
         private void RunButton_Click(object sender, EventArgs e)
         {
             try
@@ -111,7 +126,7 @@ namespace RB10.Bot.Toysrus
             {
                 if (e.Value.ToString() == "End")
                 {
-                    e.Value = Properties.Resources.check_mark_icon;
+                    e.Value = Properties.Resources.check_active;
                 }
                 else
                 {

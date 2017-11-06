@@ -33,12 +33,12 @@
             this.JanCodeFileTextBox = new System.Windows.Forms.TextBox();
             this.FileSelectButton = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.RunAsyncButton = new System.Windows.Forms.Button();
             this.Column5 = new System.Windows.Forms.DataGridViewImageColumn();
             this.Column4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.RunAsyncButton = new System.Windows.Forms.Button();
             this.DelayNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -88,6 +88,7 @@
             // 
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
+            this.dataGridView1.AllowUserToResizeRows = false;
             this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -103,22 +104,11 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowHeadersVisible = false;
+            this.dataGridView1.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.White;
             this.dataGridView1.RowTemplate.Height = 21;
             this.dataGridView1.Size = new System.Drawing.Size(946, 509);
             this.dataGridView1.TabIndex = 16;
             this.dataGridView1.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
-            // 
-            // RunAsyncButton
-            // 
-            this.RunAsyncButton.Location = new System.Drawing.Point(12, 52);
-            this.RunAsyncButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.RunAsyncButton.Name = "RunAsyncButton";
-            this.RunAsyncButton.Size = new System.Drawing.Size(125, 34);
-            this.RunAsyncButton.TabIndex = 17;
-            this.RunAsyncButton.Text = "非同期実行";
-            this.RunAsyncButton.UseVisualStyleBackColor = true;
-            this.RunAsyncButton.Visible = false;
-            this.RunAsyncButton.Click += new System.EventHandler(this.RunAsyncButton_Click);
             // 
             // Column5
             // 
@@ -159,6 +149,18 @@
             this.Column3.Name = "Column3";
             this.Column3.ReadOnly = true;
             this.Column3.Width = 480;
+            // 
+            // RunAsyncButton
+            // 
+            this.RunAsyncButton.Location = new System.Drawing.Point(12, 52);
+            this.RunAsyncButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.RunAsyncButton.Name = "RunAsyncButton";
+            this.RunAsyncButton.Size = new System.Drawing.Size(125, 34);
+            this.RunAsyncButton.TabIndex = 17;
+            this.RunAsyncButton.Text = "非同期実行";
+            this.RunAsyncButton.UseVisualStyleBackColor = true;
+            this.RunAsyncButton.Visible = false;
+            this.RunAsyncButton.Click += new System.EventHandler(this.RunAsyncButton_Click);
             // 
             // DelayNumericUpDown
             // 
@@ -215,6 +217,7 @@
             this.Name = "ExecForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "トイザらス スクレイピング";
+            this.Load += new System.EventHandler(this.ExecForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.DelayNumericUpDown)).EndInit();
             this.ResumeLayout(false);

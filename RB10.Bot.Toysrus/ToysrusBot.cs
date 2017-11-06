@@ -507,8 +507,10 @@ namespace RB10.Bot.Toysrus
             try
             {
                 req = (HttpWebRequest)WebRequest.Create(url);
+                req.Method = "GET";
                 req.Timeout = TIME_OUT;
                 req.UserAgent = Properties.Settings.Default.UserAgent;
+                //req.Proxy = null;
 
                 // html取得文字列
                 string html = "";

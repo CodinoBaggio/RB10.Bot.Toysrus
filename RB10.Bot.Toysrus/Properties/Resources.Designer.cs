@@ -63,9 +63,9 @@ namespace RB10.Bot.Toysrus.Properties {
         /// <summary>
         ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
         /// </summary>
-        internal static System.Drawing.Bitmap check_deactive {
+        internal static System.Drawing.Bitmap check_active {
             get {
-                object obj = ResourceManager.GetObject("check_deactive", resourceCulture);
+                object obj = ResourceManager.GetObject("check_active", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -73,9 +73,9 @@ namespace RB10.Bot.Toysrus.Properties {
         /// <summary>
         ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
         /// </summary>
-        internal static System.Drawing.Bitmap check_mark_icon {
+        internal static System.Drawing.Bitmap check_deactive {
             get {
-                object obj = ResourceManager.GetObject("check_mark_icon", resourceCulture);
+                object obj = ResourceManager.GetObject("check_deactive", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
