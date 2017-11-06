@@ -3,10 +3,13 @@
   <Profiles />
   <Settings>
     <Setting Name="JanCodeFileName" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">C:\Users\USR949.NGASCTR\Desktop\jan.csv</Value>
+      <Value Profile="(Default)">C:\temp\jan.csv</Value>
     </Setting>
-    <Setting Name="ResultFileName" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">C:\Users\USR949.NGASCTR\Desktop\jan_result.csv</Value>
+    <Setting Name="Delay" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="UserAgent" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ToysrusBot (+aaa@bbb.com)</Value>
     </Setting>
   </Settings>
 </SettingsFile>

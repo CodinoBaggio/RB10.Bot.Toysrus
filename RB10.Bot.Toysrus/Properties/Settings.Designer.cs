@@ -25,7 +25,7 @@ namespace RB10.Bot.Toysrus.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\USR949.NGASCTR\\Desktop\\jan.csv")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\temp\\jan.csv")]
         public string JanCodeFileName {
             get {
                 return ((string)(this["JanCodeFileName"]));
@@ -34,10 +34,19 @@ namespace RB10.Bot.Toysrus.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\USR949.NGASCTR\\Desktop\\jan_result.csv")]
-        public string ResultFileName {
+        [global::System.Configuration.DefaultSettingValueAttribute("1000")]
+        public int Delay {
             get {
-                return ((string)(this["ResultFileName"]));
+                return ((int)(this["Delay"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("ToysrusBot (+aaa@bbb.com)")]
+        public string UserAgent {
+            get {
+                return ((string)(this["UserAgent"]));
             }
         }
     }

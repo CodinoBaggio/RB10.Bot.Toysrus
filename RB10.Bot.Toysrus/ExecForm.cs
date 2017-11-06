@@ -14,6 +14,7 @@ namespace RB10.Bot.Toysrus
     {
         private class Log
         {
+            public string ProcessStatus { get; set; }
             public string Status { get; set; }
             public string LogDate { get; set; }
             public string JanCode { get; set; }
@@ -21,7 +22,7 @@ namespace RB10.Bot.Toysrus
         }
 
         private BindingList<Log> _logs { get; set; }
-        delegate void LogDelegate(string janCode, string logDate, string status, string message);
+        delegate void LogDelegate(string processStatus, string status, string janCode, string logDate, string message);
 
         public ExecForm()
         {
@@ -44,7 +45,7 @@ namespace RB10.Bot.Toysrus
 
                 var task = new ToysrusBot();
                 task.ExecutingStateChanged += Task_ExecutingStateChanged;
-                task.Start(JanCodeFileTextBox.Text, dlg.FileName);
+                task.Start(JanCodeFileTextBox.Text, dlg.FileName, (int)DelayNumericUpDown.Value);
             }
             catch (ApplicationException ex)
             {
@@ -58,10 +59,10 @@ namespace RB10.Bot.Toysrus
 
         private void Task_ExecutingStateChanged(object sender, ToysrusBot.ExecutingStateEventArgs e)
         {
-            Invoke(new LogDelegate(AddLog), e.ReportState.ToString(), DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"), e.JanCode, e.Message);
+            Invoke(new LogDelegate(UpdateLog), e.ProcessStatus.ToString(), e.NotifyStatus.ToString(), e.JanCode, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"), e.Message);
         }
 
-        private void AddLog(string status, string logDate, string janCode, string message)
+        private void UpdateLog(string processStatus, string status, string janCode, string logDate, string message)
         {
             if (_logs == null)
             {
@@ -69,14 +70,25 @@ namespace RB10.Bot.Toysrus
                 dataGridView1.DataSource = _logs;
             }
 
-            _logs.Insert(0, new Log { Status = status, LogDate = logDate, JanCode = janCode, Message = message });
+            var log = _logs.Where(x => x.JanCode == janCode);
+            if(0 < log.Count())
+            {
+                log.First().LogDate = logDate;
+                log.First().Message = message;
+                log.First().ProcessStatus = processStatus;
+                log.First().Status = status;
+            }
+            else
+            {
+                _logs.Insert(0, new Log { ProcessStatus = processStatus, Status = status, LogDate = logDate, JanCode = janCode, Message = message });
+            }
         }
 
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex == -1 || e.ColumnIndex == -1) return;
 
-            if (e.ColumnIndex == 0)
+            if (dataGridView1.Columns[e.ColumnIndex].Name == Column4.Name)
             {
                 if (e.Value.ToString() == "Warning")
                 {
@@ -93,6 +105,19 @@ namespace RB10.Bot.Toysrus
                     DataGridViewCellStyle cellStyle = new DataGridViewCellStyle() { BackColor = System.Drawing.Color.Black, ForeColor = System.Drawing.Color.White };
                     dataGridView1.Rows[e.RowIndex].DefaultCellStyle = cellStyle;
                 }
+            }
+
+            if (dataGridView1.Columns[e.ColumnIndex].Name == Column5.Name)
+            {
+                if (e.Value.ToString() == "End")
+                {
+                    e.Value = Properties.Resources.check_mark_icon;
+                }
+                else
+                {
+                    e.Value = Properties.Resources.check_deactive;
+                }
+                e.FormattingApplied = true;
             }
         }
 

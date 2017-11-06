@@ -33,12 +33,17 @@
             this.JanCodeFileTextBox = new System.Windows.Forms.TextBox();
             this.FileSelectButton = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.RunAsyncButton = new System.Windows.Forms.Button();
+            this.Column5 = new System.Windows.Forms.DataGridViewImageColumn();
             this.Column4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.RunAsyncButton = new System.Windows.Forms.Button();
+            this.DelayNumericUpDown = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.DelayNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // RunButton
@@ -83,9 +88,13 @@
             // 
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
+            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.dataGridView1.BackgroundColor = System.Drawing.Color.White;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Column5,
             this.Column4,
             this.Column2,
             this.Column1,
@@ -93,10 +102,32 @@
             this.dataGridView1.Location = new System.Drawing.Point(2, 93);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.RowTemplate.Height = 21;
-            this.dataGridView1.Size = new System.Drawing.Size(947, 328);
+            this.dataGridView1.Size = new System.Drawing.Size(946, 509);
             this.dataGridView1.TabIndex = 16;
             this.dataGridView1.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
+            // 
+            // RunAsyncButton
+            // 
+            this.RunAsyncButton.Location = new System.Drawing.Point(12, 52);
+            this.RunAsyncButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.RunAsyncButton.Name = "RunAsyncButton";
+            this.RunAsyncButton.Size = new System.Drawing.Size(125, 34);
+            this.RunAsyncButton.TabIndex = 17;
+            this.RunAsyncButton.Text = "非同期実行";
+            this.RunAsyncButton.UseVisualStyleBackColor = true;
+            this.RunAsyncButton.Visible = false;
+            this.RunAsyncButton.Click += new System.EventHandler(this.RunAsyncButton_Click);
+            // 
+            // Column5
+            // 
+            this.Column5.DataPropertyName = "ProcessStatus";
+            this.Column5.HeaderText = "";
+            this.Column5.ImageLayout = System.Windows.Forms.DataGridViewImageCellLayout.Stretch;
+            this.Column5.Name = "Column5";
+            this.Column5.ReadOnly = true;
+            this.Column5.Width = 21;
             // 
             // Column4
             // 
@@ -129,22 +160,50 @@
             this.Column3.ReadOnly = true;
             this.Column3.Width = 480;
             // 
-            // RunAsyncButton
+            // DelayNumericUpDown
             // 
-            this.RunAsyncButton.Location = new System.Drawing.Point(684, 52);
-            this.RunAsyncButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.RunAsyncButton.Name = "RunAsyncButton";
-            this.RunAsyncButton.Size = new System.Drawing.Size(125, 34);
-            this.RunAsyncButton.TabIndex = 17;
-            this.RunAsyncButton.Text = "非同期実行";
-            this.RunAsyncButton.UseVisualStyleBackColor = true;
-            this.RunAsyncButton.Click += new System.EventHandler(this.RunAsyncButton_Click);
+            this.DelayNumericUpDown.Location = new System.Drawing.Point(656, 58);
+            this.DelayNumericUpDown.Maximum = new decimal(new int[] {
+            1000000,
+            0,
+            0,
+            0});
+            this.DelayNumericUpDown.Name = "DelayNumericUpDown";
+            this.DelayNumericUpDown.Size = new System.Drawing.Size(72, 25);
+            this.DelayNumericUpDown.TabIndex = 18;
+            this.DelayNumericUpDown.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.DelayNumericUpDown.Value = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(590, 61);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(68, 18);
+            this.label2.TabIndex = 19;
+            this.label2.Text = "取得間隔を";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(728, 61);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(80, 18);
+            this.label3.TabIndex = 20;
+            this.label3.Text = "ミリ秒にする";
             // 
             // ExecForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(952, 424);
+            this.ClientSize = new System.Drawing.Size(951, 605);
+            this.Controls.Add(this.DelayNumericUpDown);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.RunAsyncButton);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.FileSelectButton);
@@ -153,11 +212,11 @@
             this.Controls.Add(this.RunButton);
             this.Font = new System.Drawing.Font("メイリオ", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.MaximizeBox = false;
             this.Name = "ExecForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "トイザらス スクレイピング";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.DelayNumericUpDown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -170,11 +229,15 @@
         private System.Windows.Forms.TextBox JanCodeFileTextBox;
         private System.Windows.Forms.Button FileSelectButton;
         private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.Button RunAsyncButton;
+        private System.Windows.Forms.DataGridViewImageColumn Column5;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column4;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column3;
-        private System.Windows.Forms.Button RunAsyncButton;
+        private System.Windows.Forms.NumericUpDown DelayNumericUpDown;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
     }
 }
 

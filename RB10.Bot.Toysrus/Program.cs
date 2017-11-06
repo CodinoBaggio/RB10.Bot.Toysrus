@@ -24,8 +24,10 @@ namespace RB10.Bot.Toysrus
             }
             else
             {
+                string resultFileName = $"{System.IO.Path.GetFileNameWithoutExtension(Properties.Settings.Default.JanCodeFileName)}_result{DateTime.Now.ToString("yyyyMMddHHmmss")}.csv";
+
                 var task = new ToysrusBot();
-                task.Start(Properties.Settings.Default.JanCodeFileName, Properties.Settings.Default.ResultFileName);
+                task.Start(Properties.Settings.Default.JanCodeFileName, resultFileName, Properties.Settings.Default.Delay);
             }
         }
     }
