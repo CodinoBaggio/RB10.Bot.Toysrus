@@ -31,16 +31,9 @@ namespace RB10.Bot.Toysrus
 
         private void ExecForm_Load(object sender, EventArgs e)
         {
-            // DataGirdViewのTypeを取得
+            // 画面チラツキ防止（ダブルバッファ設定）
             System.Type dgvtype = typeof(DataGridView);
-
-            // プロパティ設定の取得
-            System.Reflection.PropertyInfo dgvPropertyInfo =
-            dgvtype.GetProperty(
-            "DoubleBuffered", System.Reflection.BindingFlags.Instance |
-            System.Reflection.BindingFlags.NonPublic);
-
-            // 対象のDataGridViewにtrueをセットする
+            System.Reflection.PropertyInfo dgvPropertyInfo = dgvtype.GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             dgvPropertyInfo.SetValue(dataGridView1, true, null);
         }
 
