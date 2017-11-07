@@ -11,5 +11,8 @@
     <Setting Name="UserAgent" Type="System.String" Scope="Application">
       <Value Profile="(Default)">ToysrusBot (+aaa@bbb.com)</Value>
     </Setting>
+    <Setting Name="IncludeUnPosted" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

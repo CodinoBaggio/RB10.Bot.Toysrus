@@ -27,7 +27,7 @@ namespace RB10.Bot.Toysrus
                 string resultFileName = $"{System.IO.Path.GetFileNameWithoutExtension(Properties.Settings.Default.JanCodeFileName)}_result{DateTime.Now.ToString("yyyyMMddHHmmss")}.csv";
 
                 var task = new ToysrusBot();
-                task.Start(Properties.Settings.Default.JanCodeFileName, resultFileName, Properties.Settings.Default.Delay);
+                task.Start(Properties.Settings.Default.JanCodeFileName, resultFileName, Properties.Settings.Default.Delay, Properties.Settings.Default.IncludeUnPosted);
             }
         }
     }
