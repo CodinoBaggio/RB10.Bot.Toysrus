@@ -42,13 +42,14 @@
             this.DelayNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
+            this.IncludeUnPostedCheckBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DelayNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // RunButton
             // 
-            this.RunButton.Location = new System.Drawing.Point(815, 52);
+            this.RunButton.Location = new System.Drawing.Point(815, 77);
             this.RunButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.RunButton.Name = "RunButton";
             this.RunButton.Size = new System.Drawing.Size(125, 34);
@@ -100,13 +101,13 @@
             this.Column2,
             this.Column1,
             this.Column3});
-            this.dataGridView1.Location = new System.Drawing.Point(2, 93);
+            this.dataGridView1.Location = new System.Drawing.Point(2, 130);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.RowTemplate.DefaultCellStyle.BackColor = System.Drawing.Color.White;
             this.dataGridView1.RowTemplate.Height = 21;
-            this.dataGridView1.Size = new System.Drawing.Size(946, 509);
+            this.dataGridView1.Size = new System.Drawing.Size(946, 472);
             this.dataGridView1.TabIndex = 16;
             this.dataGridView1.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
             // 
@@ -198,11 +199,22 @@
             this.label3.TabIndex = 20;
             this.label3.Text = "ミリ秒にする";
             // 
+            // IncludeUnPostedCheckBox
+            // 
+            this.IncludeUnPostedCheckBox.AutoSize = true;
+            this.IncludeUnPostedCheckBox.Location = new System.Drawing.Point(593, 84);
+            this.IncludeUnPostedCheckBox.Name = "IncludeUnPostedCheckBox";
+            this.IncludeUnPostedCheckBox.Size = new System.Drawing.Size(219, 22);
+            this.IncludeUnPostedCheckBox.TabIndex = 21;
+            this.IncludeUnPostedCheckBox.Text = "未掲載だった商品もサイト検索する";
+            this.IncludeUnPostedCheckBox.UseVisualStyleBackColor = true;
+            // 
             // ExecForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(951, 605);
+            this.Controls.Add(this.IncludeUnPostedCheckBox);
             this.Controls.Add(this.DelayNumericUpDown);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
@@ -241,6 +253,7 @@
         private System.Windows.Forms.NumericUpDown DelayNumericUpDown;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.CheckBox IncludeUnPostedCheckBox;
     }
 }
 

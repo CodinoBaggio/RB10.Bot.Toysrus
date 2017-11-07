@@ -53,7 +53,7 @@ namespace RB10.Bot.Toysrus
 
                 var task = new ToysrusBot();
                 task.ExecutingStateChanged += Task_ExecutingStateChanged;
-                task.Start(JanCodeFileTextBox.Text, dlg.FileName, (int)DelayNumericUpDown.Value);
+                task.Start(JanCodeFileTextBox.Text, dlg.FileName, (int)DelayNumericUpDown.Value, IncludeUnPostedCheckBox.Checked);
             }
             catch (ApplicationException ex)
             {

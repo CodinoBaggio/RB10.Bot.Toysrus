@@ -13,6 +13,12 @@ namespace RB10.Bot.Toysrus
 {
     class ToysrusBot
     {
+        private class InputJanCode
+        {
+            public string JanCode { get; set; }
+            public DateTime ReleaseDate { get; set; }
+        }
+
         private class SearchResult
         {
             public string JanCode { get; set; }
@@ -22,6 +28,7 @@ namespace RB10.Bot.Toysrus
             public int StoreStockCount { get; set; } = -1;
             public int StoreLessStockCount { get; set; } = -1;
             public string ImageUrl { get; set; } = "";
+            public bool IsSiteHit { get; set; }
         }
 
         private const int TIME_OUT = 100000;
@@ -61,21 +68,50 @@ namespace RB10.Bot.Toysrus
 
         #endregion
 
-        public void Start(string janCodeFileName, string saveFileName, int delay = 0)
+        public void Start(string janCodeFileName, string saveFileName, int delay = 0, bool includeUnPosted = false)
         {
             _tokenSource = new CancellationTokenSource();
             CancelToken = _tokenSource.Token;
 
-            Task.Run(() => Run(janCodeFileName, saveFileName, delay), CancelToken);
+            Task.Run(() => Run(janCodeFileName, saveFileName, delay, includeUnPosted), CancelToken);
         }
 
-        public void Run(string janCodeFileName, string saveFileName, int delay)
+        public void Run(string janCodeFileName, string saveFileName, int delay, bool includeUnPosted)
         {
             try
             {
                 // ファイル読み込み
-                List<string> janCodes = System.IO.File.ReadLines(janCodeFileName, Encoding.GetEncoding("shift-jis")).ToList();
-                Notify("入力", "JANコードファイルを読み込みました。", NotifyStatus.Information, ProcessStatus.End);
+                List<string> lines = System.IO.File.ReadLines(janCodeFileName, Encoding.GetEncoding("shift-jis")).ToList();
+                List<InputJanCode> inputJanCodes = new List<InputJanCode>();
+                foreach (var line in lines.Where(x => x != "" && !x.StartsWith("//")))
+                {
+                    var items = line.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                    InputJanCode input = new InputJanCode();
+                    if (items.Length == 2)
+                    {
+                        input.JanCode = items[0].Trim();
+                        input.ReleaseDate = Convert.ToDateTime(items[1].Trim());
+                        inputJanCodes.Add(input);
+                    }
+                    else if(items.Length == 1)
+                    {
+                        input.JanCode = items[0].Trim();
+                        input.ReleaseDate = DateTime.MinValue;
+                        inputJanCodes.Add(input);
+                    }
+                }
+                Notify("入力情報", "JANコードファイルを読み込みました。", NotifyStatus.Information, ProcessStatus.End);
+
+                // 未掲載CSV読み込み
+                List<string> unPosted = new List<string>();
+                if (!includeUnPosted && System.IO.File.Exists(@".\未掲載.csv"))
+                {
+                    unPosted = System.IO.File.ReadLines(@".\未掲載.csv", Encoding.GetEncoding("shift-jis")).ToList();
+                    Notify("未掲載情報", "未掲載ファイルを読み込みました。", NotifyStatus.Information, ProcessStatus.End);
+                }
+
+                // JANコードの選別
+                List<string> janCodes = ToScreening(inputJanCodes, unPosted);
 
                 // 情報取得
                 List<SearchResult> results = new List<SearchResult>();
@@ -83,6 +119,8 @@ namespace RB10.Bot.Toysrus
                 {
                     var result = new SearchResult();
                     result.JanCode = janCode;
+                    results.Add(result);
+
                     Notify(janCode, "情報取得を開始しました。", NotifyStatus.Information, ProcessStatus.Start);
 
                     try
@@ -101,9 +139,9 @@ namespace RB10.Bot.Toysrus
                         }
                         else
                         {
-                            result.ProductName = productName.InnerHtml;
+                            result.IsSiteHit = true;
+                            result.ProductName = "\"" + productName.InnerHtml + "\"";
                         }
-                        results.Add(result);
 
                         var price = doc.GetElementsByClassName("inTax");
                         if (price.Count() == 0 || (price.First() as AngleSharp.Dom.Html.IHtmlElement).IsHidden)
@@ -179,16 +217,19 @@ namespace RB10.Bot.Toysrus
                 // ファイル出力
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine("JANコード,商品名,税込価格,オンライン在庫,店舗在庫あり,店舗在庫わずか,商品画像URL");
-                foreach (var result in results)
+                foreach (var result in results.Where(x => x.IsSiteHit))
                 {
                     sb.AppendLine($"{result.JanCode},{result.ProductName},{result.Price},{result.OnlineStock},{result.StoreStockCount},{result.StoreLessStockCount},{result.ImageUrl}");
                 }
 
-                if (0 < results.Count)
+                if (0 < results.Where(x => x.IsSiteHit).Count())
                 {
                     System.IO.File.WriteAllText(saveFileName, sb.ToString(), Encoding.GetEncoding("shift-jis"));
-                    Notify("出力", "結果ファイルを出力しました。", NotifyStatus.Information, ProcessStatus.End);
+                    Notify("出力情報", "結果ファイルを出力しました。", NotifyStatus.Information, ProcessStatus.End);
                 }
+
+                // 未掲載ファイル作成
+                CreateUnPostedFile(unPosted, results, includeUnPosted);
             }
             catch (Exception ex)
             {
@@ -498,6 +539,56 @@ namespace RB10.Bot.Toysrus
             }
 
             return result;
+        }
+
+        private List<string> ToScreening(List<InputJanCode> inputJanCodes, List<string> unPosted)
+        {
+            List<string> ret = new List<string>();
+            foreach (var inputJanCode in inputJanCodes)
+            {
+                if(0 < (inputJanCode.ReleaseDate - DateTime.Now).TotalHours)
+                {
+                    // 発売開始前であればサイト検索対象する
+                    ret.Add(inputJanCode.JanCode);
+                }
+                else
+                {
+                    var q = unPosted.Where(x => x == inputJanCode.JanCode);
+                    if (q.Count() == 0)
+                    {
+                        // 未掲載になければサイト検索対象にする
+                        ret.Add(inputJanCode.JanCode);
+                    }
+                }
+            }
+            return ret;
+        }
+
+        private void CreateUnPostedFile(List<string> unPosted, List<SearchResult> results, bool includeUnPosted)
+        {
+            // サイト検索でヒットしなかったJANコードを未掲載に追加
+            unPosted.AddRange(results.Where(x => !x.IsSiteHit).Select(x => x.JanCode).ToList());
+
+            if (includeUnPosted && System.IO.File.Exists(@".\未掲載.csv"))
+            {
+                var lines = System.IO.File.ReadAllLines(@".\未掲載.csv");
+                unPosted.AddRange(lines.Where(x => x != ""));
+            }
+
+            // サイト検索でヒットしたJANコードを未掲載から除外
+            var siteHitJanCodes = results.Where(x => x.IsSiteHit).Select(x => x.JanCode).ToList();
+            List<string> newUnPosted = new List<string>();
+            foreach (var item in unPosted)
+            {
+                var q = siteHitJanCodes.Where(x => x == item);
+                if(q.Count() == 0)
+                {
+                    newUnPosted.Add(item);
+                }
+            }
+
+            // ファイル書き込み
+            if (0 < newUnPosted.Count) System.IO.File.WriteAllLines(@".\未掲載.csv", newUnPosted.Distinct().ToList());
         }
 
         private string GetHtml(string url)
