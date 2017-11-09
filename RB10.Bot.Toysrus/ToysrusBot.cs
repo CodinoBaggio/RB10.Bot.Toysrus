@@ -164,11 +164,8 @@ namespace RB10.Bot.Toysrus
                             result.ImageUrl = "https://www.toysrus.co.jp" + (image as AngleSharp.Dom.Html.IHtmlAnchorElement).PathName;
                         }
 
-                        if(doc.Title.StartsWith("【予約商品】"))
-                        {
-                            result.OnlineStock = "予約商品";
-                        }
-                        else
+                        var isLotManegeYes = doc.GetElementById("isLotManegeYes");
+                        if (isLotManegeYes == null || (isLotManegeYes as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
                         {
                             var stock = doc.GetElementById("isStock");
                             if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
@@ -191,26 +188,17 @@ namespace RB10.Bot.Toysrus
                                 }
                             }
                         }
-                        //var stock = doc.GetElementById("isStock");
-                        //if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
-                        //{
-                        //    Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                        //    result.OnlineStock = "不明";
-                        //}
-                        //else
-                        //{
-                        //    var stockStatus = stock.Children[0].Children.Where(x => (x as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden == false);
-                        //    if (stockStatus.Count() == 0)
-                        //    {
-                        //        Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                        //        result.OnlineStock = "不明";
-                        //    }
-                        //    else
-                        //    {
-                        //        var f = stockStatus.First().InnerHtml;
-                        //        result.OnlineStock = f;
-                        //    }
-                        //}
+                        else
+                        {
+                            var isLot_a = doc.GetElementById("isLot_a") as AngleSharp.Dom.Html.IHtmlLabelElement;
+                            if(!isLot_a.IsHidden) result.OnlineStock = "予約受付中";
+                            var isLot_b = doc.GetElementById("isLot_b") as AngleSharp.Dom.Html.IHtmlLabelElement;
+                            if (!isLot_b.IsHidden) result.OnlineStock = "予約受付終了間近";
+                            var isLot_c = doc.GetElementById("isLot_b") as AngleSharp.Dom.Html.IHtmlLabelElement;
+                            if (!isLot_c.IsHidden) result.OnlineStock = "予約受付終了";
+                            var isLot_d = doc.GetElementById("isLot_b") as AngleSharp.Dom.Html.IHtmlLabelElement;
+                            if (!isLot_d.IsHidden) result.OnlineStock = "注文不可";
+                        }
 
                         var sku = doc.GetElementsByName("MAIN_SKU");
                         if (sku == null)

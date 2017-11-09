@@ -43,7 +43,7 @@ namespace RB10.Bot.Toysrus.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("ToysrusBot (+aaa@bbb.com)")]
+        [global::System.Configuration.DefaultSettingValueAttribute("ToysrusBot")]
         public string UserAgent {
             get {
                 return ((string)(this["UserAgent"]));
