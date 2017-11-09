@@ -164,26 +164,53 @@ namespace RB10.Bot.Toysrus
                             result.ImageUrl = "https://www.toysrus.co.jp" + (image as AngleSharp.Dom.Html.IHtmlAnchorElement).PathName;
                         }
 
-                        var stock = doc.GetElementById("isStock");
-                        if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
+                        if(doc.Title.StartsWith("【予約商品】"))
                         {
-                            Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                            result.OnlineStock = "不明";
+                            result.OnlineStock = "予約商品";
                         }
                         else
                         {
-                            var stockStatus = stock.Children[0].Children.Where(x => (x as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden == false);
-                            if (stockStatus.Count() == 0)
+                            var stock = doc.GetElementById("isStock");
+                            if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
                             {
                                 Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
                                 result.OnlineStock = "不明";
                             }
                             else
                             {
-                                var f = stockStatus.First().InnerHtml;
-                                result.OnlineStock = f;
+                                var stockStatus = stock.Children[0].Children.Where(x => (x as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden == false);
+                                if (stockStatus.Count() == 0)
+                                {
+                                    Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
+                                    result.OnlineStock = "不明";
+                                }
+                                else
+                                {
+                                    var f = stockStatus.First().InnerHtml;
+                                    result.OnlineStock = f;
+                                }
                             }
                         }
+                        //var stock = doc.GetElementById("isStock");
+                        //if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
+                        //{
+                        //    Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
+                        //    result.OnlineStock = "不明";
+                        //}
+                        //else
+                        //{
+                        //    var stockStatus = stock.Children[0].Children.Where(x => (x as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden == false);
+                        //    if (stockStatus.Count() == 0)
+                        //    {
+                        //        Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
+                        //        result.OnlineStock = "不明";
+                        //    }
+                        //    else
+                        //    {
+                        //        var f = stockStatus.First().InnerHtml;
+                        //        result.OnlineStock = f;
+                        //    }
+                        //}
 
                         var sku = doc.GetElementsByName("MAIN_SKU");
                         if (sku == null)
