@@ -42,7 +42,7 @@
             this.DelayNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.RunAsyncButton = new System.Windows.Forms.Button();
+            this.ProductCodeButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DelayNumericUpDown)).BeginInit();
             this.SuspendLayout();
@@ -135,9 +135,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 22);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(138, 18);
+            this.label1.Size = new System.Drawing.Size(116, 18);
             this.label1.TabIndex = 23;
-            this.label1.Text = "JANコードCSVファイル";
+            this.label1.Text = "商品名CSVファイル";
             // 
             // RunButton
             // 
@@ -196,16 +196,16 @@
             this.label2.TabIndex = 29;
             this.label2.Text = "取得間隔を";
             // 
-            // RunAsyncButton
+            // ProductCodeButton
             // 
-            this.RunAsyncButton.Location = new System.Drawing.Point(12, 52);
-            this.RunAsyncButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.RunAsyncButton.Name = "RunAsyncButton";
-            this.RunAsyncButton.Size = new System.Drawing.Size(125, 34);
-            this.RunAsyncButton.TabIndex = 27;
-            this.RunAsyncButton.Text = "非同期実行";
-            this.RunAsyncButton.UseVisualStyleBackColor = true;
-            this.RunAsyncButton.Visible = false;
+            this.ProductCodeButton.Location = new System.Drawing.Point(15, 77);
+            this.ProductCodeButton.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.ProductCodeButton.Name = "ProductCodeButton";
+            this.ProductCodeButton.Size = new System.Drawing.Size(125, 34);
+            this.ProductCodeButton.TabIndex = 27;
+            this.ProductCodeButton.Text = "商品コード取得";
+            this.ProductCodeButton.UseVisualStyleBackColor = true;
+            this.ProductCodeButton.Click += new System.EventHandler(this.ProductCodeButton_Click);
             // 
             // ExecForm
             // 
@@ -221,7 +221,7 @@
             this.Controls.Add(this.DelayNumericUpDown);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.RunAsyncButton);
+            this.Controls.Add(this.ProductCodeButton);
             this.Font = new System.Drawing.Font("メイリオ", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "ExecForm";
@@ -250,7 +250,7 @@
         private System.Windows.Forms.NumericUpDown DelayNumericUpDown;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Button RunAsyncButton;
+        private System.Windows.Forms.Button ProductCodeButton;
     }
 }
 

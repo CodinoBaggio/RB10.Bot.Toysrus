@@ -69,41 +69,82 @@ namespace RB10.Bot.YodobashiCamera
 
         #endregion
 
+        public void StartProductCodeFile(string productNameFile, int delay = 0)
+        {
+            _tokenSource = new CancellationTokenSource();
+            CancelToken = _tokenSource.Token;
+
+            Task.Run(() => CreateProductCodeFile(productNameFile, delay), CancelToken);
+        }
+
+        public void CreateProductCodeFile(string productNameFile, int delay)
+        {
+            List<(string ProductName, DateTime ReleaseDate)> inputProducts = new List<(string ProductName, DateTime ReleaseDate)>();
+            foreach (var line in File.ReadAllLines(productNameFile, Encoding.GetEncoding("shift-jis")))
+            {
+                var items = line.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                if(items.Length == 2)
+                {
+                    inputProducts.Add((items[0], Convert.ToDateTime(items[1])));
+                }
+                else
+                {
+                    inputProducts.Add((items[0], DateTime.MinValue));
+                }
+            }
+
+            var saveFileName = Path.Combine(System.Windows.Forms.Application.StartupPath, Path.GetFileNameWithoutExtension(productNameFile) + "_ProductCode.csv");
+            foreach (var inputProduct in inputProducts)
+            {
+                try
+                {
+                    string html = GetHtml($"http://www.yodobashi.com/?word={inputProduct.ProductName}");
+                    var parser = new HtmlParser();
+                    var doc = parser.Parse(html);
+
+                    var productList = doc.GetElementsByClassName("js_productListPostTag js-clicklog js-analysis-schRlt");
+
+                    foreach (var product in productList)
+                    {
+                        var element = product as AngleSharp.Dom.Html.IHtmlAnchorElement;
+                        var code = element.PathName;
+                        string productNo = string.Empty;
+                        var match = _productReg.Match(code);
+                        if (match.Success)
+                        {
+                            productNo = match.Groups["productNo"].Value;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+
+                        using (var writer = File.AppendText(saveFileName))
+                        {
+                            writer.WriteLine($"{productNo},{inputProduct.ReleaseDate.ToString("yyyy/MM/dd")}");
+                        }
+                        //string stockHtml = GetHtml($"http://www.yodobashi.com/ec/product/stock/{productNo}/");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Notify(inputProduct.ProductName, ex.ToString(), NotifyStatus.Exception, ProcessStatus.End);
+                }
+                finally
+                {
+                    if (0 < delay) Task.Delay(delay).Wait();
+                }
+            }
+
+
+        }
+
         public void Start(string janCodeFileName, string saveFileName, int delay = 0, bool includeUnPosted = false)
         {
             _tokenSource = new CancellationTokenSource();
             CancelToken = _tokenSource.Token;
 
             Task.Run(() => Run(janCodeFileName, saveFileName, delay, includeUnPosted), CancelToken);
-        }
-
-        public void Research()
-        {
-            string html = GetHtml($"http://www.yodobashi.com/?word=NintendoSwitch");
-            var parser = new HtmlParser();
-            var doc = parser.Parse(html);
-
-            var productList = doc.GetElementsByClassName("js_productListPostTag js-clicklog js-analysis-schRlt");
-
-            foreach (var product in productList)
-            {
-                var element = product as AngleSharp.Dom.Html.IHtmlAnchorElement;
-                var code = element.PathName;
-                string productNo = string.Empty;
-                var match = _productReg.Match(code);
-                if (match.Success)
-                {
-                    productNo = match.Groups["productNo"].Value;
-                }
-                else
-                {
-                    continue;
-                }
-
-                string stockHtml = GetHtml($"http://www.yodobashi.com/ec/product/stock/{productNo}/");
-            }
-
-
         }
 
         public void Run(string janCodeFileName, string saveFileName, int delay, bool includeUnPosted)
