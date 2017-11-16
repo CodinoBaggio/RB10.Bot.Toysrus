@@ -33,8 +33,9 @@ namespace RB10.Bot.YodobashiCamera
 
         private const int TIME_OUT = 100000;
 
-        private System.Text.RegularExpressions.Regex _exist = new System.Text.RegularExpressions.Regex("<div class=\"status\">在庫あり</div>");
-        private System.Text.RegularExpressions.Regex _lessExist = new System.Text.RegularExpressions.Regex("<div class=\"status\">在庫わずか</div>");
+        private System.Text.RegularExpressions.Regex _productReg = new System.Text.RegularExpressions.Regex("/product/(?<productNo>.*)/");
+        private System.Text.RegularExpressions.Regex _exist = new System.Text.RegularExpressions.Regex("在庫あり");
+        private System.Text.RegularExpressions.Regex _lessExist = new System.Text.RegularExpressions.Regex("在庫わずか");
 
         #region 状態通知イベント
 
@@ -74,6 +75,35 @@ namespace RB10.Bot.YodobashiCamera
             CancelToken = _tokenSource.Token;
 
             Task.Run(() => Run(janCodeFileName, saveFileName, delay, includeUnPosted), CancelToken);
+        }
+
+        public void Research()
+        {
+            string html = GetHtml($"http://www.yodobashi.com/?word=NintendoSwitch");
+            var parser = new HtmlParser();
+            var doc = parser.Parse(html);
+
+            var productList = doc.GetElementsByClassName("js_productListPostTag js-clicklog js-analysis-schRlt");
+
+            foreach (var product in productList)
+            {
+                var element = product as AngleSharp.Dom.Html.IHtmlAnchorElement;
+                var code = element.PathName;
+                string productNo = string.Empty;
+                var match = _productReg.Match(code);
+                if (match.Success)
+                {
+                    productNo = match.Groups["productNo"].Value;
+                }
+                else
+                {
+                    continue;
+                }
+
+                string stockHtml = GetHtml($"http://www.yodobashi.com/ec/product/stock/{productNo}/");
+            }
+
+
         }
 
         public void Run(string janCodeFileName, string saveFileName, int delay, bool includeUnPosted)
@@ -126,7 +156,7 @@ namespace RB10.Bot.YodobashiCamera
                     try
                     {
                         // html取得文字列
-                        string html = GetHtml($"https://www.toysrus.co.jp/search/?q={janCode}");
+                        string html = GetHtml($"http://www.yodobashi.com/?word={janCode}");
 
                         var parser = new HtmlParser();
                         var doc = parser.Parse(html);
