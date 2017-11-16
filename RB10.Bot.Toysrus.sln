@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RB10.Bot.Toysrus", "RB10.Bot.Toysrus\RB10.Bot.Toysrus.csproj", "{5132A335-7008-486E-9130-B4DFAD215665}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RB10.Bot.YodobashiCamera", "RB10.Bot.YodobashiCamera\RB10.Bot.YodobashiCamera.csproj", "{CD9EA686-D116-41D0-8408-B22BD2BC722E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{5132A335-7008-486E-9130-B4DFAD215665}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5132A335-7008-486E-9130-B4DFAD215665}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5132A335-7008-486E-9130-B4DFAD215665}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD9EA686-D116-41D0-8408-B22BD2BC722E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD9EA686-D116-41D0-8408-B22BD2BC722E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD9EA686-D116-41D0-8408-B22BD2BC722E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD9EA686-D116-41D0-8408-B22BD2BC722E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
