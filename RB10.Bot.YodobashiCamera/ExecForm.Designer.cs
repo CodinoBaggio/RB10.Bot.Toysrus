@@ -29,11 +29,6 @@
         private void InitializeComponent()
         {
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.Column5 = new System.Windows.Forms.DataGridViewImageColumn();
-            this.Column4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.FileSelectButton = new System.Windows.Forms.Button();
             this.JanCodeFileTextBox = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -43,6 +38,11 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.ProductCodeButton = new System.Windows.Forms.Button();
+            this.Column5 = new System.Windows.Forms.DataGridViewImageColumn();
+            this.Column4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DelayNumericUpDown)).BeginInit();
             this.SuspendLayout();
@@ -71,46 +71,6 @@
             this.dataGridView1.RowTemplate.Height = 21;
             this.dataGridView1.Size = new System.Drawing.Size(946, 472);
             this.dataGridView1.TabIndex = 26;
-            // 
-            // Column5
-            // 
-            this.Column5.DataPropertyName = "ProcessStatus";
-            this.Column5.HeaderText = "";
-            this.Column5.ImageLayout = System.Windows.Forms.DataGridViewImageCellLayout.Stretch;
-            this.Column5.Name = "Column5";
-            this.Column5.ReadOnly = true;
-            this.Column5.Width = 21;
-            // 
-            // Column4
-            // 
-            this.Column4.DataPropertyName = "Status";
-            this.Column4.HeaderText = "ステータス";
-            this.Column4.Name = "Column4";
-            this.Column4.ReadOnly = true;
-            this.Column4.Width = 150;
-            // 
-            // Column2
-            // 
-            this.Column2.DataPropertyName = "LogDate";
-            this.Column2.HeaderText = "日時";
-            this.Column2.Name = "Column2";
-            this.Column2.ReadOnly = true;
-            this.Column2.Width = 150;
-            // 
-            // Column1
-            // 
-            this.Column1.DataPropertyName = "JanCode";
-            this.Column1.HeaderText = "JANコード";
-            this.Column1.Name = "Column1";
-            this.Column1.ReadOnly = true;
-            // 
-            // Column3
-            // 
-            this.Column3.DataPropertyName = "Message";
-            this.Column3.HeaderText = "メッセージ";
-            this.Column3.Name = "Column3";
-            this.Column3.ReadOnly = true;
-            this.Column3.Width = 480;
             // 
             // FileSelectButton
             // 
@@ -207,6 +167,46 @@
             this.ProductCodeButton.UseVisualStyleBackColor = true;
             this.ProductCodeButton.Click += new System.EventHandler(this.ProductCodeButton_Click);
             // 
+            // Column5
+            // 
+            this.Column5.DataPropertyName = "ProcessStatus";
+            this.Column5.HeaderText = "";
+            this.Column5.ImageLayout = System.Windows.Forms.DataGridViewImageCellLayout.Stretch;
+            this.Column5.Name = "Column5";
+            this.Column5.ReadOnly = true;
+            this.Column5.Width = 21;
+            // 
+            // Column4
+            // 
+            this.Column4.DataPropertyName = "Status";
+            this.Column4.HeaderText = "ステータス";
+            this.Column4.Name = "Column4";
+            this.Column4.ReadOnly = true;
+            this.Column4.Width = 150;
+            // 
+            // Column2
+            // 
+            this.Column2.DataPropertyName = "LogDate";
+            this.Column2.HeaderText = "日時";
+            this.Column2.Name = "Column2";
+            this.Column2.ReadOnly = true;
+            this.Column2.Width = 150;
+            // 
+            // Column1
+            // 
+            this.Column1.DataPropertyName = "Info";
+            this.Column1.HeaderText = "情報";
+            this.Column1.Name = "Column1";
+            this.Column1.ReadOnly = true;
+            // 
+            // Column3
+            // 
+            this.Column3.DataPropertyName = "Message";
+            this.Column3.HeaderText = "メッセージ";
+            this.Column3.Name = "Column3";
+            this.Column3.ReadOnly = true;
+            this.Column3.Width = 480;
+            // 
             // ExecForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 18F);
@@ -237,11 +237,6 @@
         #endregion
 
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.DataGridViewImageColumn Column5;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column4;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column3;
         private System.Windows.Forms.Button FileSelectButton;
         private System.Windows.Forms.TextBox JanCodeFileTextBox;
         private System.Windows.Forms.Label label1;
@@ -251,6 +246,11 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button ProductCodeButton;
+        private System.Windows.Forms.DataGridViewImageColumn Column5;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column4;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column3;
     }
 }
 

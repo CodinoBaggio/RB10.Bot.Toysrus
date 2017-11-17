@@ -56,7 +56,7 @@ namespace RB10.Bot.YodobashiCamera
 
         public class ExecutingStateEventArgs : EventArgs
         {
-            public string JanCode { get; set; }
+            public string Info { get; set; }
             public string Message { get; set; }
             public NotifyStatus NotifyStatus { get; set; }
             public ProcessStatus ProcessStatus { get; set; }
@@ -79,17 +79,17 @@ namespace RB10.Bot.YodobashiCamera
 
         public void CreateProductCodeFile(string productNameFile, int delay)
         {
-            List<(string ProductName, DateTime ReleaseDate)> inputProducts = new List<(string ProductName, DateTime ReleaseDate)>();
-            foreach (var line in File.ReadAllLines(productNameFile, Encoding.GetEncoding("shift-jis")))
+            List<(string JanCode, DateTime ReleaseDate, string ProductName)> inputProducts = new List<(string JanCode, DateTime ReleaseDate, string ProductName)>();
+            foreach (var line in System.IO.File.ReadAllLines(productNameFile, Encoding.GetEncoding("shift-jis")))
             {
-                var items = line.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                if(items.Length == 2)
+                var items = line.Split(",".ToCharArray());
+                if(items.Length == 3)
                 {
-                    inputProducts.Add((items[0], Convert.ToDateTime(items[1])));
+                    inputProducts.Add((items[0].Trim(), items[1].Trim() != "" ? Convert.ToDateTime(items[1].Trim()) : DateTime.MinValue, items[2].Trim()));
                 }
                 else
                 {
-                    inputProducts.Add((items[0], DateTime.MinValue));
+                    continue;
                 }
             }
 
@@ -119,7 +119,7 @@ namespace RB10.Bot.YodobashiCamera
                             continue;
                         }
 
-                        using (var writer = File.AppendText(saveFileName))
+                        using (var writer = System.IO.File.AppendText(saveFileName))
                         {
                             writer.WriteLine($"{productNo},{inputProduct.ReleaseDate.ToString("yyyy/MM/dd")}");
                         }
@@ -151,148 +151,96 @@ namespace RB10.Bot.YodobashiCamera
         {
             try
             {
-                // ファイル読み込み
-                List<string> lines = System.IO.File.ReadLines(janCodeFileName, Encoding.GetEncoding("shift-jis")).ToList();
-                List<InputJanCode> inputJanCodes = new List<InputJanCode>();
-                foreach (var line in lines.Where(x => x != "" && !x.StartsWith("//")))
+                // 入力ファイル読み込み
+                List<(string JanCode, DateTime ReleaseDate, string ProductName)> inputJanCodes = new List<(string JanCode, DateTime ReleaseDate, string ProductName)>();
+                bool isError = false;
+                foreach (var line in System.IO.File.ReadAllLines(janCodeFileName, Encoding.GetEncoding("shift-jis")))
                 {
-                    var items = line.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                    InputJanCode input = new InputJanCode();
-                    if (items.Length == 2)
+                    var items = line.Split(",".ToCharArray());
+                    if (items.Length == 3)
                     {
-                        input.JanCode = items[0].Trim();
-                        input.ReleaseDate = Convert.ToDateTime(items[1].Trim());
-                        inputJanCodes.Add(input);
+                        inputJanCodes.Add((items[0].Trim(), items[1].Trim() != "" ? Convert.ToDateTime(items[1].Trim()) : DateTime.MinValue, items[2].Trim()));
                     }
-                    else if(items.Length == 1)
+                    else
                     {
-                        input.JanCode = items[0].Trim();
-                        input.ReleaseDate = DateTime.MinValue;
-                        inputJanCodes.Add(input);
+                        isError = true;
+                        continue;
                     }
                 }
-                Notify("入力情報", "JANコードファイルを読み込みました。", NotifyStatus.Information, ProcessStatus.End);
+                if (isError)
+                {
+                    Notify("入力情報", "JANコードファイルのフォーマットが正しくありません。", NotifyStatus.Error, ProcessStatus.End);
+                }
+                else
+                {
+                    Notify("入力情報", "JANコードファイルを読み込みました。", NotifyStatus.Information, ProcessStatus.End);
+                }
 
                 // 未掲載CSV読み込み
-                List<string> unPosted = new List<string>();
-                if (!includeUnPosted && System.IO.File.Exists(@".\未掲載.csv"))
+                var unPostedFile = new File.UnPostedFile(@".\未掲載.csv");
+                if (System.IO.File.Exists(@".\未掲載.csv"))
                 {
-                    unPosted = System.IO.File.ReadLines(@".\未掲載.csv", Encoding.GetEncoding("shift-jis")).ToList();
                     Notify("未掲載情報", "未掲載ファイルを読み込みました。", NotifyStatus.Information, ProcessStatus.End);
                 }
 
-                // JANコードの選別
-                List<string> janCodes = ToScreening(inputJanCodes, unPosted);
+                // 商品コードファイル読み込み
+                var productCodeFilePath = Path.Combine(System.Windows.Forms.Application.StartupPath, Path.GetFileNameWithoutExtension(janCodeFileName) + "_ProductCode.csv");
+                var productCodeFile = new File.ProductCodeFile(productCodeFilePath);
+                if (System.IO.File.Exists(productCodeFilePath))
+                {
+                    Notify("商品コードファイル", "商品コードファイルを読み込みました。", NotifyStatus.Information, ProcessStatus.End);
+                }
 
                 // 情報取得
                 List<SearchResult> results = new List<SearchResult>();
-                foreach (var janCode in janCodes)
+                foreach (var inputJanCode in inputJanCodes)
                 {
                     var result = new SearchResult();
-                    result.JanCode = janCode;
+                    result.JanCode = inputJanCode.JanCode;
+                    result.ProductName = inputJanCode.ProductName;
                     results.Add(result);
 
-                    Notify(janCode, "情報取得を開始しました。", NotifyStatus.Information, ProcessStatus.Start);
+                    Notify(inputJanCode.JanCode, "情報取得を開始しました。", NotifyStatus.Information, ProcessStatus.Start);
 
                     try
                     {
-                        // html取得文字列
-                        string html = GetHtml($"http://www.yodobashi.com/?word={janCode}");
+                        var isApplySearch = IsApplySearch(inputJanCode, unPostedFile, includeUnPosted);
 
-                        var parser = new HtmlParser();
-                        var doc = parser.Parse(html);
+                        var product = productCodeFile.GetProductCode(inputJanCode.JanCode);
+                        string productCode = "";
+                        if (product.JanCode == null)
+                        {
+                            // 商品名検索
+                            productCode = SearchByProductName(inputJanCode, ref result, ref productCodeFile);
 
-                        var productName = doc.GetElementById("DISP_GOODS_NM");
-                        if (productName == null)
-                        {
-                            Notify(janCode, "商品がありません。", NotifyStatus.Warning, ProcessStatus.End);
-                            continue;
-                        }
-                        else
-                        {
-                            result.IsSiteHit = true;
-                            result.ProductName = "\"" + productName.InnerHtml + "\"";
-                        }
-
-                        var price = doc.GetElementsByClassName("inTax");
-                        if (price.Count() == 0 || (price.First() as AngleSharp.Dom.Html.IHtmlElement).IsHidden)
-                        {
-                            Notify(janCode, "税込価格がありません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                        }
-                        else
-                        {
-                            result.Price = price.First().InnerHtml.Substring(0, price.First().InnerHtml.IndexOf("円")).Replace(",", "");
-                        }
-
-                        var image = doc.GetElementById("slideshow-01");
-                        if (image == null || (image as AngleSharp.Dom.Html.IHtmlAnchorElement).IsHidden)
-                        {
-                            Notify(janCode, "商品画像URLが取得できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                            result.ImageUrl = "不明";
-                        }
-                        else
-                        {
-                            result.ImageUrl = "https://www.toysrus.co.jp" + (image as AngleSharp.Dom.Html.IHtmlAnchorElement).PathName;
-                        }
-
-                        var isLotManegeYes = doc.GetElementById("isLotManegeYes");
-                        if (isLotManegeYes == null || (isLotManegeYes as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
-                        {
-                            var stock = doc.GetElementById("isStock");
-                            if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
+                            if(productCode == "")
                             {
-                                Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                                result.OnlineStock = "不明";
-                            }
-                            else
-                            {
-                                var stockStatus = stock.Children[0].Children.Where(x => (x as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden == false);
-                                if (stockStatus.Count() == 0)
+                                // 商品がヒットしない場合、発売日より前であれば未掲載ファイルに追加する
+                                if (0 < (inputJanCode.ReleaseDate - DateTime.Now).TotalHours)
                                 {
-                                    Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                                    result.OnlineStock = "不明";
+                                    unPostedFile.Add(inputJanCode.JanCode);
                                 }
-                                else
-                                {
-                                    var f = stockStatus.First().InnerHtml;
-                                    result.OnlineStock = f;
-                                }
+
+                                Notify(inputJanCode.JanCode, "商品がありません。", NotifyStatus.Warning, ProcessStatus.End);
+                                continue;
                             }
+
+                            // ウェイト
+                            Task.Delay(delay).Wait();
                         }
                         else
                         {
-                            var isLot_a = doc.GetElementById("isLot_a") as AngleSharp.Dom.Html.IHtmlLabelElement;
-                            if(!isLot_a.IsHidden) result.OnlineStock = "予約受付中";
-                            var isLot_b = doc.GetElementById("isLot_b") as AngleSharp.Dom.Html.IHtmlLabelElement;
-                            if (!isLot_b.IsHidden) result.OnlineStock = "予約受付終了間近";
-                            var isLot_c = doc.GetElementById("isLot_b") as AngleSharp.Dom.Html.IHtmlLabelElement;
-                            if (!isLot_c.IsHidden) result.OnlineStock = "予約受付終了";
-                            var isLot_d = doc.GetElementById("isLot_b") as AngleSharp.Dom.Html.IHtmlLabelElement;
-                            if (!isLot_d.IsHidden) result.OnlineStock = "注文不可";
+                            productCode = product.ProductCode;
                         }
 
-                        var sku = doc.GetElementsByName("MAIN_SKU");
-                        if (sku == null)
-                        {
-                            Notify(janCode, "トイザらスの商品コードが取得できなかったため、店舗在庫の取得ができません。", NotifyStatus.Warning, ProcessStatus.End);
-                            continue;
-                        }
-
-                        var storeUrl = $"https://www.toysrus.co.jp/disp/CSfGoodsPageRealShop_001.jsp?sku={(sku[0] as AngleSharp.Dom.Html.IHtmlInputElement).Value}&shopCd=";
-                        html = GetHtml(storeUrl);
-                        doc = parser.Parse(html);
-                        var source = doc.Source.Text;
-
-                        int existCount = _exist.Matches(source).Count;
-                        int lessExistCount = _lessExist.Matches(source).Count;
-                        result.StoreStockCount = existCount;
-                        result.StoreLessStockCount = lessExistCount;
-
-                        Notify(janCode, "情報を取得しました。", NotifyStatus.Information, ProcessStatus.End);
+                        // 商品情報取得
+                        GetProductDetail(inputJanCode, productCode, ref result);
+                        
+                        Notify(inputJanCode.JanCode, "情報を取得しました。", NotifyStatus.Information, ProcessStatus.End);
                     }
                     catch (Exception ex)
                     {
-                        Notify(janCode, ex.ToString(), NotifyStatus.Exception, ProcessStatus.End);
+                        Notify(inputJanCode.JanCode, ex.ToString(), NotifyStatus.Exception, ProcessStatus.End);
                     }
                     finally
                     {
@@ -315,7 +263,10 @@ namespace RB10.Bot.YodobashiCamera
                 }
 
                 // 未掲載ファイル作成
-                CreateUnPostedFile(unPosted, results, includeUnPosted);
+                unPostedFile.Write(results.Where(x => x.IsSiteHit).Select(x => x.JanCode).ToList(), results.Where(x => !x.IsSiteHit).Select(x => x.JanCode).ToList());
+
+                // 商品コードファイル作成
+                throw new NotImplementedException();
             }
             catch (Exception ex)
             {
@@ -327,354 +278,81 @@ namespace RB10.Bot.YodobashiCamera
             }
         }
 
-        public async Task StartAsync(string janCodeFileName, string saveFileName)
+        private bool IsApplySearch((string JanCode, DateTime ReleaseDate, string ProductName) inputJanCode, File.UnPostedFile unPostedFile, bool includeUnPosted)
         {
-            try
+            if (includeUnPosted) return true;
+
+            bool ret = false;
+            if (0 < (inputJanCode.ReleaseDate - DateTime.Now).TotalHours)
             {
-                // ファイル読み込み
-                List<string> janFile = System.IO.File.ReadLines(janCodeFileName, Encoding.GetEncoding("shift-jis")).ToList();
-                Notify("入力", "JANコードファイルを読み込みました。", NotifyStatus.Information, ProcessStatus.End);
-
-                // JANコードを1000ずつに分割
-                int start = 0;
-                List<List<string>> janCodesList = new List<List<string>>();
-                while (true)
-                {
-                    List<string> janCodes = janFile.Skip(start).Take(100).ToList();
-                    janCodesList.Add(janCodes);
-                    start += 100;
-                    if (janFile.Count < start)
-                    {
-                        break;
-                    }
-                }
-
-                // スクレイピング非同期処理実行
-                var tasks = janCodesList.Select(x => Task.Run(() =>
-                {
-                    return Scrape(x);
-                }));
-                var results = await Task.WhenAll(tasks);
-
-                // 結果取得
-                List<SearchResult> outputs = new List<SearchResult>();
-                foreach (var result in results)
-                {
-                    outputs.AddRange(result);
-                }
-
-                // ファイル出力
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("JANコード,商品名,税込価格,オンライン在庫,店舗在庫あり,店舗在庫わずか,商品画像URL");
-                foreach (var result in outputs)
-                {
-                    sb.AppendLine($"{result.JanCode},{result.ProductName},{result.Price},{result.OnlineStock},{result.StoreStockCount},{result.StoreLessStockCount},{result.ImageUrl}");
-                }
-
-                if (0 < outputs.Count)
-                {
-                    System.IO.File.WriteAllText(saveFileName, sb.ToString(), Encoding.GetEncoding("shift-jis"));
-                    Notify("出力", "結果ファイルを出力しました。", NotifyStatus.Information, ProcessStatus.End);
-                }
+                // 発売開始前であればサイト検索対象する
+                ret = true;
             }
-            catch (Exception ex)
+            else
             {
-                Notify("-", ex.ToString(), NotifyStatus.Exception, ProcessStatus.End);
-            }
-            finally
-            {
-                Notify("-", "すべての処理が完了しました。", NotifyStatus.Information, ProcessStatus.End);
-            }
-        }
-
-        private List<SearchResult> Scrape(List<string> janCodes)
-        {
-            // 情報取得
-            List<SearchResult> results = new List<SearchResult>();
-            foreach (var janCode in janCodes)
-            {
-                var result = new SearchResult();
-                result.JanCode = janCode;
-                Notify(janCode, "情報取得を開始しました。", NotifyStatus.Information, ProcessStatus.Start);
-
-
-                try
+                var q = unPostedFile.Get(inputJanCode.JanCode);
+                if (q == null)
                 {
-                    // html取得文字列
-                    string html = GetHtml($"https://www.toysrus.co.jp/search/?q={janCode}");
-
-                    var parser = new HtmlParser();
-                    var doc = parser.Parse(html);
-
-                    var productName = doc.GetElementById("DISP_GOODS_NM");
-                    if (productName == null)
-                    {
-                        Notify(janCode, "商品がありません。", NotifyStatus.Warning, ProcessStatus.End);
-                        continue;
-                    }
-                    else
-                    {
-                        result.ProductName = productName.InnerHtml;
-                    }
-                    results.Add(result);
-
-                    var price = doc.GetElementsByClassName("inTax");
-                    if (price.Count() == 0 || (price.First() as AngleSharp.Dom.Html.IHtmlElement).IsHidden)
-                    {
-                        Notify(janCode, "税込価格がありません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                    }
-                    else
-                    {
-                        result.Price = price.First().InnerHtml.Substring(0, price.First().InnerHtml.IndexOf("円")).Replace(",", "");
-                    }
-
-                    var image = doc.GetElementById("slideshow-01");
-                    if (image == null || (image as AngleSharp.Dom.Html.IHtmlAnchorElement).IsHidden)
-                    {
-                        Notify(janCode, "商品画像URLが取得できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                        result.ImageUrl = "不明";
-                    }
-                    else
-                    {
-                        result.ImageUrl = "https://www.toysrus.co.jp" + (image as AngleSharp.Dom.Html.IHtmlAnchorElement).PathName;
-                    }
-
-                    var stock = doc.GetElementById("isStock");
-                    if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
-                    {
-                        Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                        result.OnlineStock = "不明";
-                    }
-                    else
-                    {
-                        var stockStatus = stock.Children[0].Children.Where(x => (x as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden == false);
-                        if (stockStatus.Count() == 0)
-                        {
-                            Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                            result.OnlineStock = "不明";
-                        }
-                        else
-                        {
-                            var f = stockStatus.First().InnerHtml;
-                            result.OnlineStock = f;
-                        }
-                    }
-
-                    var sku = doc.GetElementsByName("MAIN_SKU");
-                    if (sku == null)
-                    {
-                        Notify(janCode, "トイザらスの商品コードが取得できなかったため、店舗在庫の取得ができません。", NotifyStatus.Warning, ProcessStatus.End);
-                        continue;
-                    }
-
-                    var storeUrl = $"https://www.toysrus.co.jp/disp/CSfGoodsPageRealShop_001.jsp?sku={(sku[0] as AngleSharp.Dom.Html.IHtmlInputElement).Value}&shopCd=";
-                    html = GetHtml(storeUrl);
-                    doc = parser.Parse(html);
-
-                    var source = doc.Source.Text;
-
-                    int existCount = _exist.Matches(source).Count;
-                    int lessExistCount = _lessExist.Matches(source).Count;
-                    result.StoreStockCount = existCount;
-                    result.StoreLessStockCount = lessExistCount;
-
-                    Notify(janCode, "情報を取得しました。", NotifyStatus.Information, ProcessStatus.End);
-                }
-                catch (Exception ex)
-                {
-                    Notify(janCode, ex.ToString(), NotifyStatus.Exception, ProcessStatus.End);
+                    // 未掲載になければサイト検索対象にする
+                    ret = true;
                 }
             }
 
-            return results;
-        }
-
-        public async Task StartAsync2(string janCodeFileName, string saveFileName)
-        {
-            try
-            {
-                // ファイル読み込み
-                List<string> janFile = System.IO.File.ReadLines(janCodeFileName, Encoding.GetEncoding("shift-jis")).ToList();
-                Notify("入力", "JANコードファイルを読み込みました。", NotifyStatus.Information, ProcessStatus.End);
-
-                // スクレイピング非同期処理実行
-                var tasks = janFile.Select(x => Task.Run(() =>
-                {
-                    return Scrape(x);
-                }));
-                var results = await Task.WhenAll(tasks);
-
-                // 結果取得
-                List<SearchResult> outputs = new List<SearchResult>();
-                outputs.AddRange(results.Where(x => x.ProductName != ""));
-
-                // ファイル出力
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("JANコード,商品名,税込価格,オンライン在庫,店舗在庫あり,店舗在庫わずか,商品画像URL");
-                foreach (var result in outputs)
-                {
-                    sb.AppendLine($"{result.JanCode},{result.ProductName},{result.Price},{result.OnlineStock},{result.StoreStockCount},{result.StoreLessStockCount},{result.ImageUrl}");
-                }
-
-                if (0 < outputs.Count)
-                {
-                    System.IO.File.WriteAllText(saveFileName, sb.ToString(), Encoding.GetEncoding("shift-jis"));
-                    Notify("出力", "結果ファイルを出力しました。", NotifyStatus.Information, ProcessStatus.End);
-                }
-            }
-            catch (Exception ex)
-            {
-                Notify("例外エラー", ex.ToString(), NotifyStatus.Exception, ProcessStatus.End);
-            }
-            finally
-            {
-                Notify("-", "すべての処理が完了しました。", NotifyStatus.Information, ProcessStatus.End);
-            }
-        }
-
-        private SearchResult Scrape(string janCode)
-        {
-            var result = new SearchResult();
-            result.JanCode = janCode;
-            Notify(janCode, "情報取得を開始しました。", NotifyStatus.Information, ProcessStatus.Start);
-
-            try
-            {
-                // html取得文字列
-                string html = GetHtml($"https://www.toysrus.co.jp/search/?q={janCode}");
-
-                var parser = new HtmlParser();
-                var doc = parser.Parse(html);
-
-                var productName = doc.GetElementById("DISP_GOODS_NM");
-                if (productName == null)
-                {
-                    Notify(janCode, "商品がありません。", NotifyStatus.Warning, ProcessStatus.End);
-                    return result;
-                }
-                else
-                {
-                    result.ProductName = productName.InnerHtml;
-                }
-
-                var price = doc.GetElementsByClassName("inTax");
-                if (price.Count() == 0 || (price.First() as AngleSharp.Dom.Html.IHtmlElement).IsHidden)
-                {
-                    Notify(janCode, "税込価格がありません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                }
-                else
-                {
-                    result.Price = price.First().InnerHtml.Substring(0, price.First().InnerHtml.IndexOf("円")).Replace(",", "");
-                }
-
-                var image = doc.GetElementById("slideshow-01");
-                if (image == null || (image as AngleSharp.Dom.Html.IHtmlAnchorElement).IsHidden)
-                {
-                    Notify(janCode, "商品画像URLが取得できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                    result.ImageUrl = "不明";
-                }
-                else
-                {
-                    result.ImageUrl = "https://www.toysrus.co.jp" + (image as AngleSharp.Dom.Html.IHtmlAnchorElement).PathName;
-                }
-
-                var stock = doc.GetElementById("isStock");
-                if (stock == null || (stock as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden)
-                {
-                    Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                    result.OnlineStock = "不明";
-                }
-                else
-                {
-                    var stockStatus = stock.Children[0].Children.Where(x => (x as AngleSharp.Dom.Html.IHtmlSpanElement).IsHidden == false);
-                    if (stockStatus.Count() == 0)
-                    {
-                        Notify(janCode, "在庫状況が確認できません。", NotifyStatus.Warning, ProcessStatus.Processing);
-                        result.OnlineStock = "不明";
-                    }
-                    else
-                    {
-                        var f = stockStatus.First().InnerHtml;
-                        result.OnlineStock = f;
-                    }
-                }
-
-                var sku = doc.GetElementsByName("MAIN_SKU");
-                if (sku == null)
-                {
-                    Notify(janCode, "トイザらスの商品コードが取得できなかったため、店舗在庫の取得ができません。", NotifyStatus.Warning, ProcessStatus.End);
-                    return result;
-                }
-
-                var storeUrl = $"https://www.toysrus.co.jp/disp/CSfGoodsPageRealShop_001.jsp?sku={(sku[0] as AngleSharp.Dom.Html.IHtmlInputElement).Value}&shopCd=";
-                html = GetHtml(storeUrl);
-                doc = parser.Parse(html);
-
-                var source = doc.Source.Text;
-
-                int existCount = _exist.Matches(source).Count;
-                int lessExistCount = _lessExist.Matches(source).Count;
-                result.StoreStockCount = existCount;
-                result.StoreLessStockCount = lessExistCount;
-
-                Notify(janCode, "情報を取得しました。", NotifyStatus.Information, ProcessStatus.End);
-            }
-            catch (Exception ex)
-            {
-                Notify(janCode, ex.ToString(), NotifyStatus.Exception, ProcessStatus.End);
-            }
-
-            return result;
-        }
-
-        private List<string> ToScreening(List<InputJanCode> inputJanCodes, List<string> unPosted)
-        {
-            List<string> ret = new List<string>();
-            foreach (var inputJanCode in inputJanCodes)
-            {
-                if(0 < (inputJanCode.ReleaseDate - DateTime.Now).TotalHours)
-                {
-                    // 発売開始前であればサイト検索対象する
-                    ret.Add(inputJanCode.JanCode);
-                }
-                else
-                {
-                    var q = unPosted.Where(x => x == inputJanCode.JanCode);
-                    if (q.Count() == 0)
-                    {
-                        // 未掲載になければサイト検索対象にする
-                        ret.Add(inputJanCode.JanCode);
-                    }
-                }
-            }
             return ret;
         }
 
-        private void CreateUnPostedFile(List<string> unPosted, List<SearchResult> results, bool includeUnPosted)
+        private string SearchByProductName((string JanCode, DateTime ReleaseDate, string ProductName) inputJanCode, ref SearchResult result, ref File.ProductCodeFile productCodeFile)
         {
-            // サイト検索でヒットしなかったJANコードを未掲載に追加
-            unPosted.AddRange(results.Where(x => !x.IsSiteHit).Select(x => x.JanCode).ToList());
+            string ret = "";
+            string word = string.Join("+", inputJanCode.ProductName.Split(new string[] { " ", "　" }, StringSplitOptions.RemoveEmptyEntries));
+            string html = GetHtml($"http://www.yodobashi.com/?word={word}");
 
-            if (includeUnPosted && System.IO.File.Exists(@".\未掲載.csv"))
+            var parser = new HtmlParser();
+            var doc = parser.Parse(html);
+
+            var productList = doc.GetElementsByClassName("js_productListPostTag js-clicklog js-analysis-schRlt");
+            if(productList.Count() == 0)
             {
-                var lines = System.IO.File.ReadAllLines(@".\未掲載.csv");
-                unPosted.AddRange(lines.Where(x => x != ""));
+                result.IsSiteHit = false;
+                return ret;
             }
-
-            // サイト検索でヒットしたJANコードを未掲載から除外
-            var siteHitJanCodes = results.Where(x => x.IsSiteHit).Select(x => x.JanCode).ToList();
-            List<string> newUnPosted = new List<string>();
-            foreach (var item in unPosted)
+            else
             {
-                var q = siteHitJanCodes.Where(x => x == item);
-                if(q.Count() == 0)
+                result.IsSiteHit = true;
+
+                var element = productList.First() as AngleSharp.Dom.Html.IHtmlAnchorElement;
+                var code = element.PathName;
+                string productNo = string.Empty;
+                var match = _productReg.Match(code);
+                if (match.Success)
                 {
-                    newUnPosted.Add(item);
+                    productNo = match.Groups["productNo"].Value;
+                    ret = productNo;
                 }
+
+                // 検索結果の商品名を取得
+                string searchedProductName = "";
+                throw new NotImplementedException();
+
+                // 商品コードファイルに追加
+                productCodeFile.Add(inputJanCode.JanCode, productNo, searchedProductName, 1 < productList.Count());
             }
 
-            // ファイル書き込み
-            if (0 < newUnPosted.Count) System.IO.File.WriteAllLines(@".\未掲載.csv", newUnPosted.Distinct().ToList());
+            return ret;
+        }
+
+        private void GetProductDetail((string JanCode, DateTime ReleaseDate, string ProductName) inputJanCode, string productCode, ref SearchResult result)
+        {
+            string html = GetHtml($"http://www.yodobashi.com/product/{productCode}/");
+            var parser = new HtmlParser();
+            var doc = parser.Parse(html);
+
+
+            throw new NotImplementedException();
+
+
+
+
         }
 
         private string GetHtml(string url)
@@ -721,7 +399,7 @@ namespace RB10.Bot.YodobashiCamera
         {
             var eventArgs = new ExecutingStateEventArgs()
             {
-                JanCode = janCode,
+                Info = janCode,
                 Message = message,
                 NotifyStatus = reportState,
                 ProcessStatus = processState
